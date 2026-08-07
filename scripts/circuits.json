@@ -1,0 +1,314 @@
+[
+  {
+    "track_id": "albert-park",
+    "display_name": "Albert Park Circuit",
+    "location": "Melbourne, Victoria, Australia",
+    "name_pattern": "Albert Park|Melbourne Grand Prix",
+    "bounding_box": [
+      -37.855,
+      144.955,
+      -37.825,
+      144.985
+    ],
+    "official_length_meters": 5278
+  },
+  {
+    "track_id": "shanghai",
+    "display_name": "Shanghai International Circuit",
+    "location": "Shanghai, China",
+    "name_pattern": "Shanghai International Circuit|Shanghai Circuit",
+    "bounding_box": [
+      31.32,
+      121.2,
+      31.36,
+      121.24
+    ],
+    "official_length_meters": 5451
+  },
+  {
+    "track_id": "suzuka",
+    "display_name": "Suzuka Circuit",
+    "location": "Suzuka, Mie, Japan",
+    "name_pattern": "Suzuka",
+    "bounding_box": [
+      34.82,
+      136.52,
+      34.86,
+      136.56
+    ],
+    "official_length_meters": 5807
+  },
+  {
+    "track_id": "miami",
+    "display_name": "Miami International Autodrome",
+    "location": "Miami Gardens, Florida, USA",
+    "name_pattern": "Miami International Autodrome|Miami Grand Prix",
+    "bounding_box": [
+      25.94,
+      -80.26,
+      25.975,
+      -80.21
+    ],
+    "official_length_meters": 5412
+  },
+  {
+    "track_id": "villeneuve",
+    "display_name": "Circuit Gilles Villeneuve",
+    "location": "Montreal, Quebec, Canada",
+    "name_pattern": "Gilles Villeneuve",
+    "bounding_box": [
+      45.49,
+      -73.535,
+      45.515,
+      -73.51
+    ],
+    "official_length_meters": 4361
+  },
+  {
+    "track_id": "monaco",
+    "display_name": "Circuit de Monaco",
+    "location": "Monte Carlo, Monaco",
+    "name_pattern": "Monaco Grand Prix|Circuit de Monaco",
+    "bounding_box": [
+      43.725,
+      7.41,
+      43.745,
+      7.435
+    ],
+    "official_length_meters": 3337
+  },
+  {
+    "track_id": "catalunya",
+    "display_name": "Circuit de Barcelona-Catalunya",
+    "location": "Montmelo, Catalonia, Spain",
+    "name_pattern": "Barcelona-Catalunya|Circuit de Catalunya",
+    "bounding_box": [
+      41.555,
+      2.24,
+      41.585,
+      2.28
+    ],
+    "official_length_meters": 4657
+  },
+  {
+    "track_id": "red-bull-ring",
+    "display_name": "Red Bull Ring",
+    "location": "Spielberg, Styria, Austria",
+    "name_pattern": "Red Bull Ring|Spielberg",
+    "bounding_box": [
+      47.205,
+      14.745,
+      47.23,
+      14.78
+    ],
+    "official_length_meters": 4318
+  },
+  {
+    "track_id": "spa",
+    "display_name": "Circuit de Spa-Francorchamps",
+    "location": "Stavelot, Belgium",
+    "name_pattern": "Spa-Francorchamps|Spa Grand Prix",
+    "bounding_box": [
+      50.415,
+      5.92,
+      50.465,
+      6.015
+    ],
+    "official_length_meters": 7004
+  },
+  {
+    "track_id": "hungaroring",
+    "display_name": "Hungaroring",
+    "location": "Mogyorod, Hungary",
+    "name_pattern": "Hungaroring",
+    "bounding_box": [
+      47.565,
+      19.23,
+      47.59,
+      19.26
+    ],
+    "official_length_meters": 4381
+  },
+  {
+    "track_id": "zandvoort",
+    "display_name": "Circuit Zandvoort",
+    "location": "Zandvoort, Netherlands",
+    "name_pattern": "Dutch Grand Prix|Nederland",
+    "bounding_box": [
+      52.38,
+      4.53,
+      52.4,
+      4.555
+    ],
+    "official_length_meters": 4259
+  },
+  {
+    "track_id": "monza",
+    "display_name": "Autodromo Nazionale Monza",
+    "location": "Monza, Lombardy, Italy",
+    "name_pattern": "Monza",
+    "bounding_box": [
+      45.6,
+      9.26,
+      45.63,
+      9.3
+    ],
+    "official_length_meters": 5793
+  },
+  {
+    "track_id": "madring",
+    "display_name": "Circuito de Madring",
+    "location": "Madrid, Spain",
+    "name_pattern": "Madring|Madrid Grand Prix",
+    "bounding_box": [
+      40.45,
+      -3.62,
+      40.5,
+      -3.55
+    ],
+    "official_length_meters": 5416
+  },
+  {
+    "track_id": "baku",
+    "display_name": "Baku City Circuit",
+    "location": "Baku, Azerbaijan",
+    "name_pattern": "Baku City Circuit|Baku Grand Prix",
+    "bounding_box": [
+      40.355,
+      49.83,
+      40.39,
+      49.875
+    ],
+    "official_length_meters": 6003
+  },
+  {
+    "track_id": "sepang",
+    "display_name": "Sepang International Circuit",
+    "location": "Sepang, Selangor, Malaysia",
+    "name_pattern": "Sepang",
+    "bounding_box": [
+      2.74,
+      101.71,
+      2.78,
+      101.75
+    ],
+    "official_length_meters": 5543
+  },
+  {
+    "track_id": "marina-bay",
+    "display_name": "Marina Bay Street Circuit",
+    "location": "Singapore",
+    "name_pattern": "Marina Bay|Singapore Grand Prix",
+    "bounding_box": [
+      1.275,
+      103.845,
+      1.3,
+      103.875
+    ],
+    "official_length_meters": 4928
+  },
+  {
+    "track_id": "cota",
+    "display_name": "Circuit of the Americas",
+    "location": "Austin, Texas, USA",
+    "name_pattern": "Circuit of the Americas|COTA",
+    "bounding_box": [
+      30.12,
+      -97.66,
+      30.145,
+      -97.62
+    ],
+    "official_length_meters": 5513
+  },
+  {
+    "track_id": "rodriguez",
+    "display_name": "Autodromo Hermanos Rodriguez",
+    "location": "Mexico City, Mexico",
+    "name_pattern": "Mexican Grand Prix|Hermanos Rodriguez",
+    "bounding_box": [
+      19.39,
+      -99.105,
+      19.415,
+      -99.08
+    ],
+    "official_length_meters": 4304
+  },
+  {
+    "track_id": "interlagos",
+    "display_name": "Autodromo Jose Carlos Pace (Interlagos)",
+    "location": "Sao Paulo, Brazil",
+    "name_pattern": "Carlos Pace|Interlagos",
+    "bounding_box": [
+      -23.715,
+      -46.715,
+      -23.695,
+      -46.685
+    ],
+    "official_length_meters": 4309
+  },
+  {
+    "track_id": "las-vegas",
+    "display_name": "Las Vegas Strip Circuit",
+    "location": "Las Vegas, Nevada, USA",
+    "name_pattern": "Las Vegas Grand Prix|Las Vegas Strip Circuit",
+    "bounding_box": [
+      36.095,
+      -115.2,
+      36.135,
+      -115.14
+    ],
+    "official_length_meters": 6201
+  },
+  {
+    "track_id": "lusail",
+    "display_name": "Lusail International Circuit",
+    "location": "Lusail, Qatar",
+    "name_pattern": "Lusail",
+    "bounding_box": [
+      25.465,
+      51.43,
+      25.5,
+      51.475
+    ],
+    "official_length_meters": 5380
+  },
+  {
+    "track_id": "yas-marina",
+    "display_name": "Yas Marina Circuit",
+    "location": "Abu Dhabi, United Arab Emirates",
+    "name_pattern": "Yas Marina",
+    "bounding_box": [
+      24.45,
+      54.58,
+      24.48,
+      54.62
+    ],
+    "official_length_meters": 5281
+  },
+  {
+    "track_id": "bahrain",
+    "display_name": "Bahrain International Circuit",
+    "location": "Sakhir, Bahrain",
+    "name_pattern": "Bahrain International Circuit|Bahrain Grand Prix",
+    "bounding_box": [
+      26.01,
+      50.49,
+      26.05,
+      50.53
+    ],
+    "official_length_meters": 5412
+  },
+  {
+    "track_id": "jeddah",
+    "display_name": "Jeddah Corniche Circuit",
+    "location": "Jeddah, Saudi Arabia",
+    "name_pattern": "Jeddah Corniche|Jeddah Street Circuit",
+    "bounding_box": [
+      21.6,
+      39.08,
+      21.65,
+      39.14
+    ],
+    "official_length_meters": 6174
+  }
+]

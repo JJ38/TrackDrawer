@@ -46,33 +46,7 @@ Hard         | Freeform (MVP mode)   | Full calendar, randomized|
 
 ---
 
-## 2. Track Scope Expansion
-
-MVP ships with a single track. Later:
-
-### 2a. Handful of iconic circuits (~5–8)
-Monaco, Spa, Suzuka, Silverstone, Monza, Baku, COTA, etc. — recognizable silhouettes that make good/bad attempts obviously different.
-
-### 2b. Full current F1 calendar (~24 tracks)
-Needs a small track-data pipeline (name, country, outline path data) and a picker UI.
-
-```
-+-------------------------------------------------+
-|  Choose a Circuit                                |
-|  [ Search: ___________ ]                         |
-|                                                   |
-|  +--------+  +--------+  +--------+  +--------+  |
-|  | Monaco |  |  Spa   |  | Suzuka |  |  Baku  |  |
-|  +--------+  +--------+  +--------+  +--------+  |
-|  +--------+  +--------+  +--------+  +--------+  |
-|  |Silverstn| | Monza  |  |  COTA  |  | Random |  |
-|  +--------+  +--------+  +--------+  +--------+  |
-+-------------------------------------------------+
-```
-
----
-
-## 3. Alternative Scoring Approaches
+## 2. Alternative Scoring Approaches
 
 MVP scoring approach to be decided separately (see open question in CLAUDE.md discussion). Alternatives to keep in mind:
 
@@ -105,8 +79,37 @@ Real track (reference)        User drawing (raw)
 
 ---
 
+## 3. Share Result Image
+
+Let the user export/share an image combining their drawing, the real track outline, and their score — a single shareable card, generated from the same overlay already shown on the result screen (render it to an offscreen canvas, composite in the score text, produce a PNG).
+
+```
++-----------------------------------+
+|                                   |
+|         ............             |
+|       ..          ..             |
+|      .    ______    .            |
+|     .    /      \    .           |
+|     .   |  ####  |   .           |
+|      .   \______/   .            |
+|       ..          ..             |
+|         ............             |
+|                                   |
+|          Suzuka Circuit          |
+|             94.8%                |
+|          "Incredible!"           |
+|                                   |
+|         Drawn on TrackDrawer     |
++-----------------------------------+
+        [ Share ]   [ Download ]
+```
+
+- "Share" uses the Web Share API where available (mobile/some desktop browsers) to hand the image to the OS share sheet; "Download" is the universal fallback (saves the PNG directly).
+- Needs the ODbL attribution to stay visible/legible on the exported image itself, not just in the app UI, since the image leaves the app's context once shared.
+
+---
+
 ## 4. Other future ideas (not yet scoped)
 - Leaderboard / daily challenge track
-- Share score as an image/card
 - Mobile touch-drawing support
 - Track packs by era or region (e.g. "Classic circuits," "Street circuits")

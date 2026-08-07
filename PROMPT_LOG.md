@@ -145,3 +145,46 @@ This file records every prompt given to Claude during the development of trackDr
   - "Scoring algorithm notes" now documents the `[x,y]` array vs `{x,y}` object data-shape boundary (the bug fixed last turn) as a standing rule, explains why a `NaN` bug silently produces an unaligned identity-transform result instead of crashing (so future debugging knows where to look), and replaces the old "not calibrated" caveat with the actual calibration methodology and resulting score bands — still flagged as synthetic-only, pending real user attempts.
   - "Structure" section updated from placeholder `(to add)` notes to the actual files now in `src/components/`, `src/scoring/`, and `src/data/`.
 - Confirmed the user has since run `git init` and made a baseline commit (`7ed4545 "MVP"`) covering everything through the previous turn; `git status` now shows only `score.js` and `CLAUDE.md` as modified, consistent with this turn's changes. No commit made — left for the user to review and commit themselves.
+
+---
+
+## 11. 2026-08-07
+
+**Prompt:**
+> you can make commits. Just ask before doing so. Draft a commit, if i approve commit and push
+
+**Summary of changes:**
+- Standing permission granted: commits (and, once approved per-instance, pushes) are allowed without asking each specific git command, but a commit must still be proposed and approved before it happens.
+- Drafted a commit message covering the `score.js` calibration change and the `CLAUDE.md` doc updates, and presented it for approval. No git commands run yet this turn.
+
+---
+
+## 12. 2026-08-07
+
+**Prompt:**
+> yes
+
+**Summary of changes:**
+- Staged `CLAUDE.md`, `PROMPT_LOG.md`, `src/scoring/score.js`; committed as `5b30eae "Calibrate scoring against synthetic test attempts"`; pushed to `origin/main` with `-u` (no upstream tracking was configured yet, confirmed via `git fetch`/`git log origin/main` that the remote already had the baseline `7ed4545` commit before pushing).
+
+---
+
+## 13. 2026-08-07
+
+**Prompt:**
+> Lets add more tracks. I want all the f1 tracks in the current calender, even the cancelled races, to be selectable. Implement this. Whilst its on my mind add being able to share an image of the drawing against the actual track with the score the user got to the feature ideas md
+
+**Summary of changes:**
+- Added the "share result image" idea to `FEATURE_IDEAS.md` (with an ASCII mockup of the shareable card) and removed the now-implemented "Track Scope Expansion" section from that file.
+- Researched the actual 2026 F1 calendar via web search rather than relying on training-data knowledge, since the season has had real mid-year changes: confirmed Bahrain and Saudi Arabia (Jeddah) were cancelled due to the Middle East conflict, Bahrain's slot was later reinstated at Sepang (Malaysia) in October, and Madrid ("Madring") is a brand-new circuit replacing Imola. Target list, per the user's explicit request to include cancelled races: the 23 circuits on the actual current calendar plus the 2 cancelled-but-originally-scheduled ones (Bahrain-Sakhir, Jeddah) = 25 total, alongside the already-existing Silverstone.
+- Generalized the one-off Silverstone sourcing approach into a reusable pipeline (`scripts/build_track.py` + `scripts/circuits.json`) and ran it across all 24 remaining circuits. This took substantial iteration — real bugs surfaced only when sourcing circuits with messier or less-standard OSM data than Silverstone's:
+  - Switched Overpass endpoints twice (`overpass-api.de` got rate-limited/unreachable after early malformed requests; `overpass.kumi.systems` became overloaded mid-session) — settled on `overpass.openstreetmap.fr`.
+  - Long-lived background processes making many sequential Overpass requests hung silently and unrecoverably in this environment (no error, no CPU use, no progress) on two separate occasions; switched to running small foreground batches (4-5 circuits per call), which were completely reliable. Documented this in the script's header comment so it isn't rediscovered later.
+  - OSM relation name search only matched the `name` tag; broadened it to also check `int_name`/`name:en`, since several circuits (Bahrain, Suzuka, Spa, Zandvoort, Mexico, Interlagos) have their English name only in those fields (or, for Interlagos, an accented character mismatch — "Jose" vs "José" — a separate fix).
+  - Generalized the endpoint-matching stitcher (originally written just for Silverstone) to handle real messiness seen in other circuits' data: role names varying by mapper convention ("pitlane" vs "pit_lane"), a self-closed way representing an entire lap as one piece (Shanghai) that a naive "exclude self-closed features" rule wrongly discarded, duplicate way pairs from OSM edit history, and — the trickiest one — two ways sharing the same two endpoints while being genuinely different physical paths (a lap's complementary front/back halves, or a closing connector vs. the long way around) that look identical to true duplicates from local geometry alone. Resolved that last one by trying both interpretations and keeping whichever reconstructed lap length matches the real-world official length — using the validation signal that already existed for exactly the purpose it's suited for, rather than a fragile local heuristic.
+  - Added a raw-`highway=raceway`-ways fallback for circuits with no relation grouping them at all (Suzuka, Miami, Lusail, Jeddah).
+- **Final result**: 23 circuits sourced with excellent fidelity (reconstructed lap length within 0.01%–0.85% of official), 1 shipped with a known flagged imperfection (Jeddah, 9% error from a genuine ~150m gap in OSM's raceway tagging for that circuit — visible as one straight "cut corner" in the outline, rest of the shape correct), and 1 excluded entirely (Madrid — still under construction ahead of its September 2026 debut, essentially no OSM data exists yet; shipping fabricated geometry was rejected as worse than not having it). Visually spot-checked several outlines (including Suzuka's distinctive figure-eight crossover) by rendering them as SVGs.
+- Wrote all 24 new track JSON files to `data/tracks/`.
+- Built the track-selection UI: `src/components/TrackSelect.jsx` (searchable grid, matches name and location) plus CSS; `src/data/tracks.js` rewritten to auto-load every `data/tracks/*.json` via `import.meta.glob` (so adding a track later needs no code change) and expose `getAllTracks()` alongside the existing `getTrackById()`; `App.jsx` gained a `selecting` screen state as the new initial screen, plus a "Choose a different track" link from the drawing/result screens back to selection.
+- Verified live in the browser: full grid renders with all 24 tracks, search filters correctly, selecting a track adapts the canvas aspect ratio to that track's actual shape (portrait for Silverstone, landscape for Suzuka), drawing and scoring work correctly on a newly-added track (Suzuka scored 94.8% on a near-exact trace, with the figure-eight crossover visible in the overlay), and the "choose a different track" round-trip works. `npx oxlint src` clean, no console errors.
+- Updated `CLAUDE.md` throughout: project description, MVP mechanics (per-track aspect ratio, track selection UI), a substantially expanded "Track data" section covering the sourcing pipeline and every edge case above (so they're not rediscovered for the next track), and the structure diagram (`TrackSelect.jsx`, `scripts/`, `getAllTracks`).

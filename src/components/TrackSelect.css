@@ -1,0 +1,55 @@
+.track-select {
+  width: min(90vw, 720px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.track-search-input {
+  width: 100%;
+  font-size: 1rem;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  box-sizing: border-box;
+  margin-bottom: 20px;
+}
+
+.track-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.track-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.track-card:hover {
+  border-color: #1f6feb;
+}
+
+.track-card-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.track-card-location {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}

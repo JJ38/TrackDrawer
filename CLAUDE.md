@@ -4,7 +4,7 @@ Guidance for Claude Code (or any agent) working in this repository.
 
 ## Project
 
-trackDrawer is a browser game inspired by "draw a perfect circle" games: the user draws a closed loop freehand, and the attempt is scored 0–100% against the outline of a real Formula 1 circuit. MVP ships with a single track (Silverstone). More tracks and modes are intentionally deferred — see `FEATURE_IDEAS.md`.
+trackDrawer is a browser game inspired by "draw a perfect circle" games: the user draws a closed loop freehand, and the attempt is scored 0–100% against the outline of a real Formula 1 circuit. The user picks a circuit from the full current F1 calendar (including races cancelled mid-season) before drawing. Other modes (guide overlays, difficulty presets, sharing) are intentionally deferred — see `FEATURE_IDEAS.md`.
 
 ## Stack
 
@@ -31,7 +31,8 @@ trackDrawer is a browser game inspired by "draw a perfect circle" games: the use
   - Start point along the loop is free; the best rotational alignment is found automatically rather than requiring the user to start at the real start/finish line.
 - **Result**: a percentage score plus a visual overlay of the user's stroke against the real track outline.
 - **Input**: desktop mouse only for MVP. Touch/stylus is deferred.
-- **Canvas**: responsive, scales to the viewport.
+- **Canvas**: responsive, scales to the viewport — including its aspect ratio, which is derived per-track from that track's own `coordinateSpace` (tracks are not all the same shape; Suzuka is wide, Silverstone is tall).
+- **Track selection**: a searchable grid (`TrackSelect.jsx`) shown before drawing. Search matches against both name and location. A "Choose a different track" link is available from the drawing and result screens to return to it.
 
 ## Scoring algorithm notes
 
@@ -42,16 +43,23 @@ trackDrawer is a browser game inspired by "draw a perfect circle" games: the use
 
 ## Track data
 
-- `data/tracks/silverstone.json` — the only track for MVP. Real Silverstone Grand Prix layout, traced from OpenStreetMap (relation 51160, "Silverstone Grand Prix"), assembled from its 27 connected raceway ways (pit lane excluded), resampled to 200 evenly arc-length-spaced points, normalized to a 598.8×1000 unitless coordinate space (origin top-left, y-down). Reconstructed lap length (~5880.6m) matches the official 5891m within ~0.2%, which is the fidelity check for this data. Full provenance is in the file's own `source` field.
-- `data/tracks/silverstone-preview.svg` — static visual reference of the outline, for sanity-checking without running the app.
+- `data/tracks/<id>.json` — one file per circuit, all in the same schema as the original Silverstone file: `id`, `name`, `location`, `layout`, `source` (provenance/attribution), `coordinateSpace` (per-track width/height, origin top-left, y-down), `pointCount`, `closed`, and `points` (`[x, y]` arrays, evenly arc-length-spaced, NOT corner-preserving).
+- Covers the full current F1 calendar as of 2026-08-07, including both circuits cancelled mid-season (Bahrain-Sakhir, Jeddah) per an explicit user request to keep cancelled races selectable, plus the two calendar changes since the season was announced (Madrid added replacing Imola, Sepang added as the relocated Bahrain round). One circuit is missing: **Madrid ("Madring")** has no usable OSM data yet (it's still under construction ahead of its September 2026 debut — Overpass returns essentially nothing) and was deliberately left out rather than shipping fabricated geometry. If it gets mapped later, source it the same way as the others.
+- **Sourcing pipeline**: `scripts/build_track.py` (config in `scripts/circuits.json`) — the same OpenStreetMap/Overpass approach used for the original Silverstone track, generalized to a reusable script after being run across the full calendar. Read the script's own header comment before re-running it; it records real operational gotchas (which Overpass mirror to use, why to run in small foreground batches, retry/backoff behavior) that aren't worth re-discovering.
+- **Known sourcing edge cases**, in case similar ones show up in future tracks:
+  - OSM's `name` tag is sometimes in a local script (e.g. Arabic, Japanese) with the English name only under `int_name` or `name:en` — search all three.
+  - A circuit's full lap is sometimes mapped as one single self-closed way (start node == end node) rather than many small segments (e.g. Shanghai) — only trust a self-closed way when it's clearly the dominant segment by point count, otherwise it's likely an unrelated small feature caught by the bounding box (e.g. a roundabout).
+  - Two ways can share the same two endpoints while being genuinely different physical paths — a lap split into "front half"/"back half", or a short closing connector versus the long way around the rest of the lap — not OSM-edit-history duplicates of the same road. Both interpretations (keep only the longer/more-detailed one vs. keep both) are tried, and the reconstructed lap length is checked against the real-world official length to decide which is correct — geometry alone can't reliably distinguish the two cases.
+  - Not every circuit has a `type=circuit` relation grouping its ways at all (e.g. Suzuka, Miami, Lusail) — the pipeline falls back to querying raw `highway=raceway` ways directly in the bounding box and stitching them the same way.
+  - Real gaps exist in OSM's raceway tagging for some circuits (a public-road stretch not tagged `highway=raceway`) — Jeddah has a ~150m untagged gap, giving it a 9% reconstructed-length error. It's flagged `NEEDS_REVIEW`-equivalent in its own `source.note` field but still shipped, since the rest of the shape is correct and 9% is a usable approximation, unlike Madrid's near-total absence of data.
+- `data/tracks/silverstone-preview.svg` — static visual reference of Silverstone's outline, for sanity-checking without running the app. (Not regenerated per-track; a one-off from the original single-track setup.)
 - **License obligation**: OSM data is ODbL-licensed. The app must show attribution to OpenStreetMap contributors somewhere visible (e.g. a footer/credits) before shipping — this is not optional, and isn't done yet.
-- When more tracks are added later, follow the same pipeline (Overpass query for a named `type=circuit` relation → dedupe/stitch member ways → resample by arc length → normalize) rather than inventing a new format per track.
 
 ## Process
 
 - **Every prompt** in this project gets an entry in `PROMPT_LOG.md` — the prompt text plus a summary of what changed. Update it as part of finishing the turn it belongs to, not retroactively in bulk.
 - Ideas outside current MVP scope go in `FEATURE_IDEAS.md`, not into the codebase. Include an ASCII diagram for any UI-related idea logged there.
-- Don't expand MVP scope (extra tracks, guide modes, touch support, backend, accounts, etc.) without explicit user confirmation — these are intentionally deferred, not forgotten.
+- Don't expand MVP scope (guide modes, touch support, backend, accounts, sharing, etc.) without explicit user confirmation — these are intentionally deferred, not forgotten.
 
 ## Structure
 
@@ -60,11 +68,15 @@ Scaffolded with Vite's `react` (JavaScript) template. Current layout:
 ```
 trackDrawer/
 ├── data/tracks/                    # track reference geometry (source of truth, framework-agnostic)
+├── scripts/
+│   ├── build_track.py              # reusable OSM/Overpass sourcing pipeline for new tracks
+│   └── circuits.json                # per-circuit search config (name patterns, bbox, official length)
 ├── public/                         # static assets served as-is
 ├── src/
 │   ├── main.jsx                    # React entry point
-│   ├── App.jsx                     # screen-state machine (drawing / result), wires everything together
+│   ├── App.jsx                     # screen-state machine (selecting / drawing / result), wires everything together
 │   ├── components/
+│   │   ├── TrackSelect.jsx         # searchable grid for choosing a circuit
 │   │   ├── DrawingCanvas.jsx       # single-stroke pointer capture, responsive canvas
 │   │   ├── Controls.jsx            # Clear/Done or Try Again button row
 │   │   └── ResultOverlay.jsx       # SVG comparison of user stroke vs. real track outline
@@ -74,7 +86,7 @@ trackDrawer/
 │   │   ├── align.js                # rotation/scale similarity alignment, free start-offset and direction
 │   │   └── score.js                # orchestrates resample + align into a 0–100% score
 │   └── data/
-│       └── tracks.js               # loads data/tracks/*.json, converts [x,y] arrays to {x,y} objects
+│       └── tracks.js               # loads all data/tracks/*.json via import.meta.glob, converts [x,y] arrays to {x,y} objects, exposes getTrackById/getAllTracks
 ├── index.html
 ├── vite.config.js
 ├── package.json

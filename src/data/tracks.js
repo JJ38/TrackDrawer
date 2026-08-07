@@ -1,4 +1,4 @@
-import silverstoneTrackData from '../../data/tracks/silverstone.json';
+const trackModules = import.meta.glob('../../data/tracks/*.json', { eager: true });
 
 
 function convertPointArraysToObjects(trackData) {
@@ -20,11 +20,22 @@ function convertPointArraysToObjects(trackData) {
 }
 
 
-const tracks = {
-  silverstone: convertPointArraysToObjects(silverstoneTrackData),
-};
+const modulePaths = Object.keys(trackModules);
+const tracks = {};
+
+for (let i = 0; i < modulePaths.length; i++) {
+  const trackModule = trackModules[modulePaths[i]];
+  const trackData = convertPointArraysToObjects(trackModule.default);
+
+  tracks[trackData.id] = trackData;
+}
 
 
 export function getTrackById(trackId) {
   return tracks[trackId];
+}
+
+
+export function getAllTracks() {
+  return Object.values(tracks);
 }
