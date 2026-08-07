@@ -36,7 +36,9 @@ trackDrawer is a browser game inspired by "draw a perfect circle" games: the use
 ## Scoring algorithm notes
 
 - Reference geometry lives in `data/tracks/<id>.json` as points evenly resampled by arc length (see below). The user's raw stroke must be resampled the same way — same point count, evenly spaced by arc length — before comparison, otherwise the point correspondence used for Procrustes alignment is meaningless.
-- Turning the raw post-alignment residual distance into a 0–100% score still needs empirical calibration once real test attempts exist. Don't treat a first-pass formula as final — flag it for tuning rather than assuming it's correct.
+- `data/tracks/*.json` stores `points` as `[x, y]` arrays, but every scoring/geometry function takes `{x, y}` objects (matching what pointer events naturally produce). The conversion happens once, at the data-loading boundary in `src/data/tracks.js` — don't reintroduce array-shaped points into `src/scoring/` or `src/components/`.
+- `findBestAlignment` (in `src/scoring/align.js`) searches every cyclic start-offset in both traversal directions and keeps the lowest residual error. Because it's a plain numeric comparison (`residualError < bestResidualError`), any `NaN` reaching it is silently ignored rather than erroring — `NaN` never satisfies `<`, so a bug that produces `NaN` residuals looks like "alignment just picked the identity transform" instead of crashing. If a future score looks suspiciously like an unaligned/untransformed user stroke, suspect a `NaN` upstream (e.g. a point-shape mismatch like the one above) before suspecting the alignment search itself.
+- The raw post-alignment residual is normalized by the track's own average radius, then converted to a 0–100% score via `SCORE_SCALE_FACTOR` in `src/scoring/score.js`. That constant was calibrated against synthetic test attempts built from the real Silverstone geometry (near-perfect trace, several levels of added point noise, a crude straight-line polygon approximation, and an unrelated oval) rather than real user drawings. With the current factor (0.45), those synthetic attempts land roughly: near-perfect trace ≈99%, light hand-wobble ≈94%, moderate wobble ≈74%, heavy wobble ≈66%, a crude 10-point polygon approximation ≈58%, and a generic shape unrelated to the track's outline ≈0%. Revisit this constant once real user attempts exist — a person's actual error pattern won't exactly match synthetic per-point noise.
 
 ## Track data
 
@@ -57,14 +59,22 @@ Scaffolded with Vite's `react` (JavaScript) template. Current layout:
 
 ```
 trackDrawer/
-├── data/tracks/         # track reference geometry (source of truth, framework-agnostic)
-├── public/              # static assets served as-is
+├── data/tracks/                    # track reference geometry (source of truth, framework-agnostic)
+├── public/                         # static assets served as-is
 ├── src/
-│   ├── main.jsx         # React entry point
-│   ├── App.jsx          # root component — will grow into components/ as the app develops
-│   ├── components/      # (to add) canvas/drawing surface, results overlay, etc.
-│   ├── scoring/         # (to add) resampling + Procrustes alignment + score calculation
-│   └── data/            # (to add) track data consumed by the app (imported from data/tracks)
+│   ├── main.jsx                    # React entry point
+│   ├── App.jsx                     # screen-state machine (drawing / result), wires everything together
+│   ├── components/
+│   │   ├── DrawingCanvas.jsx       # single-stroke pointer capture, responsive canvas
+│   │   ├── Controls.jsx            # Clear/Done or Try Again button row
+│   │   └── ResultOverlay.jsx       # SVG comparison of user stroke vs. real track outline
+│   ├── scoring/
+│   │   ├── geometry.js             # shared point-math helpers (distance, centering)
+│   │   ├── resample.js             # evenly resample a closed loop by arc length
+│   │   ├── align.js                # rotation/scale similarity alignment, free start-offset and direction
+│   │   └── score.js                # orchestrates resample + align into a 0–100% score
+│   └── data/
+│       └── tracks.js               # loads data/tracks/*.json, converts [x,y] arrays to {x,y} objects
 ├── index.html
 ├── vite.config.js
 ├── package.json

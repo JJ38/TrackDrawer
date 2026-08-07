@@ -5,10 +5,14 @@ import { findBestAlignment, applyAlignment } from './align';
 
 const TRACK_POINT_COUNT = 200;
 
-// This factor has not been calibrated against real user attempts yet — it
-// controls how quickly the score drops as the residual shape error grows,
-// relative to the track's own average radius. Revisit once real drawings exist.
-const SCORE_SCALE_FACTOR = 0.6;
+// Controls how quickly the score drops as the residual shape error grows,
+// relative to the track's own average radius. Calibrated against synthetic
+// test attempts built from the real Silverstone geometry (see CLAUDE.md's
+// "Scoring algorithm notes" for the methodology and resulting score bands),
+// not real user drawings — revisit once real attempts exist, since a
+// person's hand-drawn error pattern will not exactly match synthetic
+// per-point noise.
+const SCORE_SCALE_FACTOR = 0.45;
 
 
 export function calculateScore(rawUserPoints, trackPoints) {

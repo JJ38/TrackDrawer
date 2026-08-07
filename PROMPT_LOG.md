@@ -128,3 +128,20 @@ This file records every prompt given to Claude during the development of trackDr
   - Also hardened `handlePointerDown`'s `setPointerCapture` call with a try/catch after directly observing it throw (a synthetic-pointer-event quirk, not reachable from genuine mouse input, but cheap to guard against since a failure there would otherwise silently break the ability to start a stroke).
 - Confirmed clean: `npx oxlint src` passes with no output, and the browser console shows zero exceptions on a fresh run after both fixes.
 - MVP is now functionally complete end-to-end (draw → Done → scored result with overlay → Try Again), running at `localhost:5183`. Score calibration remains an open, explicitly-flagged item — a plain oval currently scores `0%` against Silverstone's much more complex shape, which is expected given the placeholder `SCORE_SCALE_FACTOR`, not a bug.
+
+---
+
+## 10. 2026-08-07
+
+**Prompt:**
+> yes make those changes. Change the claude.md where appropiate. I have created a git repository now for context and theres a .gitignore
+
+**Summary of changes:**
+- Took "those changes" as calibrating the score against real Silverstone geometry (the flagged next step from the previous turn), since no real user attempts exist yet to calibrate against directly.
+- Built a synthetic calibration test in the browser (dynamically importing the actual `scoring/` modules and real track data): a near-perfect trace, three levels of added per-point noise, a crude 10-point straight-line polygon approximation, and a generic unrelated oval, run through the real `calculateScore` function.
+- With the original placeholder (`SCORE_SCALE_FACTOR = 0.6`), the curve was already reasonable but a bit lenient at the high-noise end (heavy wobble still scored ~75%). Reduced the factor to `0.45`, which produces better separation: near-perfect ≈99%, light wobble ≈94–96%, moderate wobble ≈74–85%, heavy wobble ≈66–72%, crude polygon ≈58%, unrelated shape 0%.
+- Verified live in the browser: a near-track trace with small jitter scored 96.8% ("Incredible!") with the overlay showing the two paths nearly perfectly superimposed — confirms alignment and scoring are both working correctly, not just the number.
+- Updated `CLAUDE.md`:
+  - "Scoring algorithm notes" now documents the `[x,y]` array vs `{x,y}` object data-shape boundary (the bug fixed last turn) as a standing rule, explains why a `NaN` bug silently produces an unaligned identity-transform result instead of crashing (so future debugging knows where to look), and replaces the old "not calibrated" caveat with the actual calibration methodology and resulting score bands — still flagged as synthetic-only, pending real user attempts.
+  - "Structure" section updated from placeholder `(to add)` notes to the actual files now in `src/components/`, `src/scoring/`, and `src/data/`.
+- Confirmed the user has since run `git init` and made a baseline commit (`7ed4545 "MVP"`) covering everything through the previous turn; `git status` now shows only `score.js` and `CLAUDE.md` as modified, consistent with this turn's changes. No commit made — left for the user to review and commit themselves.
