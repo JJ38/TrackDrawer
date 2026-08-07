@@ -1,0 +1,10 @@
+.drawing-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  border: 2px solid #d0d7de;
+  border-radius: 8px;
+  cursor: crosshair;
+  touch-action: none;
+}

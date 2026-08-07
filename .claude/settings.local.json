@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Bash(rm -f silverstone_preview2.svg.png)",
+      "Bash(qlmanage -t -s 900 -o . silverstone_preview2.svg)",
+      "Bash(python3 -c \"import json; print\\(json.dumps\\(json.load\\(open\\('/Users/james/Documents/Dev/trackDrawer/data/tracks/silverstone.json'\\)\\), indent=2\\)[:600]\\)\")"
+    ]
+  }
+}

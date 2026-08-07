@@ -1,0 +1,24 @@
+.result-overlay {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  border: 2px solid #d0d7de;
+  border-radius: 8px;
+}
+
+.track-path {
+  fill: none;
+  stroke: #9aa4b2;
+  stroke-width: 4;
+  stroke-dasharray: 10 8;
+  stroke-linejoin: round;
+}
+
+.user-path {
+  fill: none;
+  stroke: #1f6feb;
+  stroke-width: 4;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}

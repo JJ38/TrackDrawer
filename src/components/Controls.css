@@ -1,0 +1,32 @@
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.primary-button,
+.secondary-button {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 10px 28px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.primary-button {
+  background-color: #1f6feb;
+  color: #ffffff;
+}
+
+.primary-button:disabled {
+  background-color: #9db8e8;
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  background-color: #ffffff;
+  color: #1f2937;
+  border-color: #d0d7de;
+}
