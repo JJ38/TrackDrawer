@@ -14,6 +14,13 @@ function buildClosedPathData(points) {
 }
 
 
+// Uses distance from the origin rather than per-axis abs(x)/abs(y) so that the
+// result is rotation-invariant. Both overlay modes show the same pair of
+// shapes rotated by opposite angles (track-fixed keeps the track unrotated
+// and rotates the user's drawing onto it; drawing-fixed does the reverse), so
+// an axis-aligned bounding box would give each mode a different extent for
+// the same physical shape, making the two toggle views appear at different
+// zoom levels.
 function calculateMaximumExtent(pointSets) {
   let maximumExtent = 0;
 
@@ -22,15 +29,26 @@ function calculateMaximumExtent(pointSets) {
 
     for (let pointIndex = 0; pointIndex < points.length; pointIndex++) {
       const point = points[pointIndex];
-      const extentX = Math.abs(point.x);
-      const extentY = Math.abs(point.y);
+      const distanceFromOrigin = Math.sqrt(point.x * point.x + point.y * point.y);
 
-      maximumExtent = Math.max(maximumExtent, extentX, extentY);
+      maximumExtent = Math.max(maximumExtent, distanceFromOrigin);
     }
   }
 
   return maximumExtent;
 }
+
+
+// Track-fixed and drawing-fixed mode render the same pair of shapes in two
+// different coordinate systems (the track's authored coordinate space versus
+// the user's raw canvas-pixel space), which do not share a fixed absolute
+// scale — it depends on the track's geometry and the user's viewport size.
+// Fixed pixel values for stroke width and dash length would therefore look
+// consistent in one mode and comically thick/coarse-dashed in the other, so
+// both are expressed as a ratio of the viewBox's own extent instead.
+const STROKE_WIDTH_RATIO = 0.006;
+const DASH_LENGTH_RATIO = 0.014;
+const DASH_GAP_RATIO = 0.011;
 
 
 function ResultOverlay(props) {
@@ -40,13 +58,16 @@ function ResultOverlay(props) {
   const paddedExtent = maximumExtent * 1.15;
   const viewBoxValue = `${-paddedExtent} ${-paddedExtent} ${paddedExtent * 2} ${paddedExtent * 2}`;
 
+  const strokeWidth = paddedExtent * STROKE_WIDTH_RATIO;
+  const dashArrayValue = `${paddedExtent * DASH_LENGTH_RATIO} ${paddedExtent * DASH_GAP_RATIO}`;
+
   const trackPathData = buildClosedPathData(trackPoints);
   const userPathData = buildClosedPathData(userPoints);
 
   return (
     <svg className="result-overlay" viewBox={viewBoxValue} preserveAspectRatio="xMidYMid meet">
-      <path d={trackPathData} className="track-path" />
-      <path d={userPathData} className="user-path" />
+      <path d={trackPathData} className="track-path" style={{ strokeWidth, strokeDasharray: dashArrayValue }} />
+      <path d={userPathData} className="user-path" style={{ strokeWidth }} />
     </svg>
   );
 }

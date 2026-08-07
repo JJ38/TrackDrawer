@@ -10,15 +10,12 @@
 .track-path {
   fill: none;
   stroke: #9aa4b2;
-  stroke-width: 4;
-  stroke-dasharray: 10 8;
   stroke-linejoin: round;
 }
 
 .user-path {
   fill: none;
   stroke: #1f6feb;
-  stroke-width: 4;
   stroke-linejoin: round;
   opacity: 0.85;
 }

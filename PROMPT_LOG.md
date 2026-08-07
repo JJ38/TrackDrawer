@@ -202,3 +202,29 @@ This file records every prompt given to Claude during the development of trackDr
 - Added `OverlayModeToggle.jsx` (two-button toggle, "Track stays fixed" / "Drawing stays fixed") shown on the result screen. `App.jsx` holds the mode as state (defaults to the existing "track stays fixed" behavior, persists across attempts/track changes since it's a display preference) and picks which pre-computed point pair to hand to `ResultOverlay` — that component needed no changes, since it was already symmetric (just renders whatever two point sets it's given).
 - Verified live in the browser: drew a deliberately rotated (~40°) and rescaled trace of the real Silverstone outline, confirmed "track stays fixed" showed the track in its normal orientation (default, 99% score), and toggling to "drawing stays fixed" correctly re-rendered with the track rotated/scaled to match the original drawing's orientation instead — score stayed at 99% in both modes, confirming this is purely a display change. `npx oxlint src` clean, no console errors.
 - Updated `CLAUDE.md`'s MVP mechanics "Result" bullet and structure diagram to document the new toggle and component.
+
+---
+
+## 15. 2026-08-07
+
+**Prompt:**
+> change the scoring to be to three decimal places
+
+**Summary of changes:**
+- `score.js`: rounding changed from one decimal place (`Math.round(rawScore * 10) / 10`) to three (`Math.round(rawScore * 1000) / 1000`).
+- `App.jsx`: result display changed to `scoreResult.percentageScore.toFixed(3)` so trailing zeros are always shown (e.g. a round `9` would otherwise display as `9`, not `9.000`).
+- Verified live in the browser — a test attempt displayed `9.046%`. `npx oxlint src` clean, no console errors.
+
+---
+
+## 16. 2026-08-07
+
+**Prompt:**
+> the drawung stays fixed view is showing a different zoom to track stays fixed view. After an attemp show them as the same higher definition image as in track stays fixed view
+
+**Summary of changes:**
+- `ResultOverlay.jsx`'s `calculateMaximumExtent` computed the SVG `viewBox` size from each point's axis-aligned `abs(x)`/`abs(y)`, which is not rotation-invariant. Both overlay modes are the same underlying shapes rotated by opposite angles (track-fixed keeps the track unrotated and rotates the drawing onto it; drawing-fixed does the reverse), so an elongated track (e.g. Baku) got a different axis-aligned bounding box in each mode — this is what produced the visibly different zoom/crop between the two toggle states.
+- Fixed by switching the extent calculation to distance-from-origin (`sqrt(x² + y²)`), which is rotation-invariant, so both modes now compute a proportionally equivalent `viewBox` and render the shape pair at the same fill/zoom level regardless of which one is "fixed".
+- This alone wasn't sufficient: the user reported "drawing stays fixed" still looked more zoomed in, with visibly thicker lines and far fewer track dashes. Root cause — `track-path`/`user-path` had fixed pixel `stroke-width`/`stroke-dasharray` values in `ResultOverlay.css`, but the two modes' `viewBox` sizes are not on the same absolute scale (track-fixed uses the track's authored coordinate space, ~700–1000 units; drawing-fixed uses the user's raw canvas-pixel space, which varies with viewport size and is often much smaller) — a fixed pixel stroke width becomes a much larger, coarser-looking fraction of a smaller `viewBox`.
+- Fixed by computing `strokeWidth` and `strokeDasharray` in `ResultOverlay.jsx` as a ratio of the same `paddedExtent` used for the `viewBox` (`STROKE_WIDTH_RATIO`, `DASH_LENGTH_RATIO`, `DASH_GAP_RATIO`, calibrated to roughly match the prior fixed values at a typical track's scale) and passing them as inline `style`, removing the fixed values from `ResultOverlay.css` entirely.
+- Verified live in the browser with a deliberately elongated track (Baku City Circuit) and a rough oval drawing: before this second fix, "drawing stays fixed" showed a thick, coarsely-dashed track outline; after it, both modes render at matching scale with matching line weight and dash density (confirmed via a zoomed-in screenshot comparison). `npx oxlint src` clean, no console errors.
