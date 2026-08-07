@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 
 import Controls from './components/Controls';
 import DrawingCanvas from './components/DrawingCanvas';
+import OverlayModeToggle from './components/OverlayModeToggle';
 import ResultOverlay from './components/ResultOverlay';
 import TrackSelect from './components/TrackSelect';
 import { getAllTracks, getTrackById } from './data/tracks';
@@ -37,10 +38,24 @@ function App() {
   const [activeTrackId, setActiveTrackId] = useState(null);
   const [canSubmitDrawing, setCanSubmitDrawing] = useState(false);
   const [scoreResult, setScoreResult] = useState(null);
+  const [overlayMode, setOverlayMode] = useState('track-fixed');
 
   const allTracks = getAllTracks().sort(compareTracksByName);
   const activeTrack = activeTrackId ? getTrackById(activeTrackId) : null;
   const trackAspectRatio = activeTrack ? activeTrack.coordinateSpace.width / activeTrack.coordinateSpace.height : 1;
+
+  let displayedTrackPoints = null;
+  let displayedUserPoints = null;
+
+  if (scoreResult) {
+    if (overlayMode === 'drawing-fixed') {
+      displayedTrackPoints = scoreResult.alignedTrackPoints;
+      displayedUserPoints = scoreResult.centeredUserPoints;
+    } else {
+      displayedTrackPoints = scoreResult.centeredTrackPoints;
+      displayedUserPoints = scoreResult.alignedUserPoints;
+    }
+  }
 
   function handleSelectTrack(trackId) {
     setActiveTrackId(trackId);
@@ -79,6 +94,10 @@ function App() {
     setScreenState('drawing');
   }
 
+  function handleOverlayModeChange(nextOverlayMode) {
+    setOverlayMode(nextOverlayMode);
+  }
+
   return (
     <div className="app">
       <header className="app-header">
@@ -99,12 +118,13 @@ function App() {
             )}
 
             {screenState === 'result' && scoreResult && (
-              <ResultOverlay
-                trackPoints={scoreResult.centeredTrackPoints}
-                userPoints={scoreResult.alignedUserPoints}
-              />
+              <ResultOverlay trackPoints={displayedTrackPoints} userPoints={displayedUserPoints} />
             )}
           </div>
+        )}
+
+        {screenState === 'result' && scoreResult && (
+          <OverlayModeToggle overlayMode={overlayMode} onOverlayModeChange={handleOverlayModeChange} />
         )}
 
         {screenState === 'drawing' && (

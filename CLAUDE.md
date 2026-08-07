@@ -29,7 +29,7 @@ trackDrawer is a browser game inspired by "draw a perfect circle" games: the use
   - Position, scale, and rotation do **not** matter.
   - Mirror/reflection **does** matter — a flipped (backwards) drawing should score worse, since it doesn't represent the real driving direction.
   - Start point along the loop is free; the best rotational alignment is found automatically rather than requiring the user to start at the real start/finish line.
-- **Result**: a percentage score plus a visual overlay of the user's stroke against the real track outline.
+- **Result**: a percentage score plus a visual overlay of the user's stroke against the real track outline. Two overlay modes, toggleable on the result screen (`OverlayModeToggle.jsx`): "track stays fixed" (default — the track outline stays put, the user's stroke is rotated/scaled onto it via `applyAlignment`) or "drawing stays fixed" (the user's stroke stays exactly as drawn, the track outline is rotated/scaled onto it instead via `applyInverseAlignment` — the inverse of the same rotation/scale, since reordering for start-offset/direction doesn't change either shape's position in the plane). Purely a display choice; the score itself doesn't change.
 - **Input**: desktop mouse only for MVP. Touch/stylus is deferred.
 - **Canvas**: responsive, scales to the viewport — including its aspect ratio, which is derived per-track from that track's own `coordinateSpace` (tracks are not all the same shape; Suzuka is wide, Silverstone is tall).
 - **Track selection**: a searchable grid (`TrackSelect.jsx`) shown before drawing. Search matches against both name and location. A "Choose a different track" link is available from the drawing and result screens to return to it.
@@ -79,7 +79,8 @@ trackDrawer/
 │   │   ├── TrackSelect.jsx         # searchable grid for choosing a circuit
 │   │   ├── DrawingCanvas.jsx       # single-stroke pointer capture, responsive canvas
 │   │   ├── Controls.jsx            # Clear/Done or Try Again button row
-│   │   └── ResultOverlay.jsx       # SVG comparison of user stroke vs. real track outline
+│   │   ├── ResultOverlay.jsx       # SVG comparison of user stroke vs. real track outline
+│   │   └── OverlayModeToggle.jsx   # switches which shape (track or drawing) stays fixed in the overlay
 │   ├── scoring/
 │   │   ├── geometry.js             # shared point-math helpers (distance, centering)
 │   │   ├── resample.js             # evenly resample a closed loop by arc length

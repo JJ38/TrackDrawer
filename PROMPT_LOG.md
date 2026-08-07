@@ -188,3 +188,17 @@ This file records every prompt given to Claude during the development of trackDr
 - Built the track-selection UI: `src/components/TrackSelect.jsx` (searchable grid, matches name and location) plus CSS; `src/data/tracks.js` rewritten to auto-load every `data/tracks/*.json` via `import.meta.glob` (so adding a track later needs no code change) and expose `getAllTracks()` alongside the existing `getTrackById()`; `App.jsx` gained a `selecting` screen state as the new initial screen, plus a "Choose a different track" link from the drawing/result screens back to selection.
 - Verified live in the browser: full grid renders with all 24 tracks, search filters correctly, selecting a track adapts the canvas aspect ratio to that track's actual shape (portrait for Silverstone, landscape for Suzuka), drawing and scoring work correctly on a newly-added track (Suzuka scored 94.8% on a near-exact trace, with the figure-eight crossover visible in the overlay), and the "choose a different track" round-trip works. `npx oxlint src` clean, no console errors.
 - Updated `CLAUDE.md` throughout: project description, MVP mechanics (per-track aspect ratio, track selection UI), a substantially expanded "Track data" section covering the sourcing pipeline and every edge case above (so they're not rediscovered for the next track), and the structure diagram (`TrackSelect.jsx`, `scripts/`, `getAllTracks`).
+
+---
+
+## 14. 2026-08-07
+
+**Prompt:**
+> Currently after an attempt the drawing is rotated ontop of the track outline to show the results. Add a toggle to choose between current functionality and one that wil keep the drawin in place and rotate the track outline to match the drawing
+
+**Summary of changes:**
+- Added `applyInverseAlignment` to `src/scoring/align.js` — applies the inverse rotation (`-rotationAngle`) and inverse scale (`1/scale`) of the existing alignment result to the track's points instead of the user's. Works because reordering for start-offset/direction only changes array index correspondence, not either shape's actual position in the plane, so undoing just the rotation and scale is enough to place the track directly onto the user's original, untransformed drawing.
+- `calculateScore` (in `score.js`) now returns both `centeredUserPoints` (untransformed) and `alignedTrackPoints` (track inverse-aligned onto the drawing), alongside the existing `centeredTrackPoints`/`alignedUserPoints` — so both overlay directions are always available without recomputing alignment.
+- Added `OverlayModeToggle.jsx` (two-button toggle, "Track stays fixed" / "Drawing stays fixed") shown on the result screen. `App.jsx` holds the mode as state (defaults to the existing "track stays fixed" behavior, persists across attempts/track changes since it's a display preference) and picks which pre-computed point pair to hand to `ResultOverlay` — that component needed no changes, since it was already symmetric (just renders whatever two point sets it's given).
+- Verified live in the browser: drew a deliberately rotated (~40°) and rescaled trace of the real Silverstone outline, confirmed "track stays fixed" showed the track in its normal orientation (default, 99% score), and toggling to "drawing stays fixed" correctly re-rendered with the track rotated/scaled to match the original drawing's orientation instead — score stayed at 99% in both modes, confirming this is purely a display change. `npx oxlint src` clean, no console errors.
+- Updated `CLAUDE.md`'s MVP mechanics "Result" bullet and structure diagram to document the new toggle and component.

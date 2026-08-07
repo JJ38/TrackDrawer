@@ -132,3 +132,17 @@ export function applyAlignment(userPoints, alignmentResult) {
 
   return transformPoints(candidatePoints, alignmentResult.rotationAngle, alignmentResult.scale);
 }
+
+
+// The inverse of applyAlignment's rotation/scale, applied to the track points
+// instead of the user's points. Since reordering (offset/reversed) only
+// changes which array index corresponds to which point and not the shape's
+// position in the plane, undoing just the rotation and scale is enough to
+// place the track directly on top of the user's original, untransformed
+// drawing — used by the "keep drawing fixed" overlay mode.
+export function applyInverseAlignment(trackPoints, alignmentResult) {
+  const inverseRotationAngle = -alignmentResult.rotationAngle;
+  const inverseScale = alignmentResult.scale > 0 ? 1 / alignmentResult.scale : 1;
+
+  return transformPoints(trackPoints, inverseRotationAngle, inverseScale);
+}

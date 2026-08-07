@@ -1,6 +1,6 @@
 import { centerPoints } from './geometry';
 import { resampleClosedLoop } from './resample';
-import { findBestAlignment, applyAlignment } from './align';
+import { findBestAlignment, applyAlignment, applyInverseAlignment } from './align';
 
 
 const TRACK_POINT_COUNT = 200;
@@ -22,6 +22,7 @@ export function calculateScore(rawUserPoints, trackPoints) {
 
   const bestAlignment = findBestAlignment(centeredTrackPoints, centeredUserPoints);
   const alignedUserPoints = applyAlignment(centeredUserPoints, bestAlignment);
+  const alignedTrackPoints = applyInverseAlignment(centeredTrackPoints, bestAlignment);
 
   const averageTrackRadius = calculateAverageRadius(centeredTrackPoints);
   const normalizedResidual = bestAlignment.residualError / averageTrackRadius;
@@ -31,7 +32,9 @@ export function calculateScore(rawUserPoints, trackPoints) {
   return {
     percentageScore,
     centeredTrackPoints,
+    centeredUserPoints,
     alignedUserPoints,
+    alignedTrackPoints,
   };
 }
 

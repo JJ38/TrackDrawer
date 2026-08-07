@@ -1,0 +1,24 @@
+.overlay-mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.overlay-mode-option {
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.overlay-mode-option-active {
+  border-color: #1f6feb;
+  color: #1f6feb;
+  opacity: 1;
+  font-weight: 600;
+}
