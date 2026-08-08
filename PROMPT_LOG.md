@@ -239,3 +239,34 @@ This file records every prompt given to Claude during the development of trackDr
 **Summary of changes:**
 - `DrawingCanvas.jsx`'s `getRelativePosition` derived stroke coordinates from `getBoundingClientRect()` alone, which returns the outer edge of the element's border box. `.drawing-canvas` has a 2px border (`DrawingCanvas.css`), so the canvas's actual drawing surface (inside the border) was offset from that rectangle's origin — every captured point was shifted by the border width from the true pointer position, making the drawn line trail slightly off from the cursor.
 - Fixed by also subtracting `canvasElement.clientLeft`/`clientTop` (the border widths) so points are measured from the content box origin, matching where the canvas actually rasterizes.
+
+---
+
+## 18. 2026-08-08
+
+**Prompt:**
+> The canvas changes size depending on the track. Make it a standard size. I want it so expand to fit the height and width available. Leave a healthy borader like there is currently
+>
+> (Clarifying exchange: asked whether the canvas should be a fixed shape like a square. User corrected — it should not be a fixed shape at all, but simply expand to whatever shape the available screen space naturally is: 16:9 on a 16:9 monitor, 4:3 on a 4:3 monitor, portrait on mobile.)
+
+**Summary of changes:**
+- This changes a previously locked-in MVP mechanic (`CLAUDE.md`: canvas aspect ratio derived per-track from `coordinateSpace`) — the user asked for it directly, which stands as the required confirmation. Updated `CLAUDE.md`'s canvas note accordingly (aspect ratio now purely a function of available viewport space, not per-track).
+- `App.jsx` previously set an inline `aspectRatio` style on `.canvas-area` computed from `activeTrack.coordinateSpace.width / height`, so the canvas shape changed per track. Removed that entirely — `DrawingCanvas.jsx`/`ResultOverlay.jsx` already fill `width:100%; height:100%` of their parent, so no per-track shape was actually needed there.
+- `App.css`: changed `.app` from `min-height: 100vh` to a bounded `height: 100vh` (with a `100dvh` fallback line for mobile browser chrome), and gave `.app-main`/`.canvas-area` `flex: 1; min-height: 0`. This makes `.canvas-area` a flex item that fills whatever space is left over after the header/controls/footer — which naturally takes on the screen's own proportions (wide on landscape monitors, tall on mobile) without any explicit ratio. The existing outer `padding: 24px 16px` on `.app` plus the canvas's own 2px border remain as the "healthy border."
+- Verified live in the browser (Playwright via `chromium-cli` was unavailable in this environment; used the `claude-in-chrome` extension instead once the user connected it): at a 1568×751 window the canvas rendered as a wide landscape rectangle filling nearly the full width, confirming it now tracks the viewport's own shape rather than a fixed or per-track ratio. `npx oxlint src` clean.
+
+---
+
+## 19. 2026-08-08
+
+**Prompt:**
+> Add a way to share the result of a drawing with friends. Is it possible to click a button that then copies an image to your clipboard?
+>
+> (Clarifying exchange: sharing is called out in `CLAUDE.md` as deferred MVP scope, so confirmed before building. Asked which actions to offer — chose "just a Copy Image button" over also adding Download/Web Share — and what the image should contain — chose "overlay + track name + score + attribution" over just the bare overlay graphic.)
+
+**Summary of changes:**
+- This expands previously-deferred MVP scope (sharing) — the user asked for it directly, which stands as the required confirmation. Updated `CLAUDE.md`'s project summary and MVP mechanics list, and `FEATURE_IDEAS.md` #3, to record that copy-to-clipboard is now shipped while download/Web Share remain deferred.
+- Extracted `ResultOverlay.jsx`'s viewBox/path/stroke-ratio math (previously private to that component) into `src/scoring/overlayGeometry.js` (`calculateOverlayGeometry`), so both the on-screen SVG and the new share-image renderer compute the exact same geometry from one place rather than duplicating it.
+- Added `src/sharing/createShareImageBlob.js`: builds a raw SVG string of the same track/user paths (since the raster path doesn't have access to the React-rendered DOM or its CSS classes), rasterizes it via an offscreen `Image`, then draws it onto an 800×1040 `<canvas>` card along with the track name, percentage score, and the OSM/ODbL attribution text (baked into the pixels since the image leaves the app's context once copied), and resolves a PNG `Blob` via `canvas.toBlob`.
+- Added a "Copy Image" button to the result screen by giving `Controls.jsx` a `secondaryDisabled` prop and wiring `App.jsx`'s existing `Controls` secondary slot to a new `handleCopyImageClick` — generates the blob for whichever overlay mode is currently displayed, calls `navigator.clipboard.write` with a `ClipboardItem`, and drives a status label (`Copy Image` → `Copying…` → `Copied!`/`Copy failed`, auto-resetting after 2.5s) via a new `copyImageStatus` state, with a `window.ClipboardItem`/`navigator.clipboard.write` feature check for browsers that lack clipboard-image support.
+- Verified live via the `claude-in-chrome` extension: drew and submitted an attempt, clicked "Copy Image," confirmed the button showed "Copied!", then read the clipboard back with an injected script (`navigator.clipboard.read()`) to confirm it held an 800×1040 `image/png` blob, and rendered that blob to the page to visually confirm the composited card (overlay, "Circuit de Monaco", "27%", and the attribution line) matched the on-screen result exactly. `npx oxlint src` clean, no console errors.

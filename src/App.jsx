@@ -7,7 +7,18 @@ import ResultOverlay from './components/ResultOverlay';
 import TrackSelect from './components/TrackSelect';
 import { getAllTracks, getTrackById } from './data/tracks';
 import { calculateScore } from './scoring/score';
+import { createShareImageBlob } from './sharing/createShareImageBlob';
 import './App.css';
+
+
+const COPY_STATUS_RESET_DELAY_IN_MILLISECONDS = 2500;
+
+const COPY_BUTTON_LABEL_BY_STATUS = {
+  idle: 'Copy Image',
+  copying: 'Copying…',
+  copied: 'Copied!',
+  error: 'Copy failed',
+};
 
 
 function compareTracksByName(firstTrack, secondTrack) {
@@ -34,11 +45,13 @@ function getScoreMessage(percentageScore) {
 
 function App() {
   const drawingCanvasRef = useRef(null);
+  const copyStatusTimeoutRef = useRef(null);
   const [screenState, setScreenState] = useState('selecting');
   const [activeTrackId, setActiveTrackId] = useState(null);
   const [canSubmitDrawing, setCanSubmitDrawing] = useState(false);
   const [scoreResult, setScoreResult] = useState(null);
   const [overlayMode, setOverlayMode] = useState('track-fixed');
+  const [copyImageStatus, setCopyImageStatus] = useState('idle');
 
   const allTracks = getAllTracks().sort(compareTracksByName);
   const activeTrack = activeTrackId ? getTrackById(activeTrackId) : null;
@@ -64,6 +77,8 @@ function App() {
   }
 
   function handleChangeTrackClick() {
+    clearCopyStatusTimeout();
+    setCopyImageStatus('idle');
     setActiveTrackId(null);
     setCanSubmitDrawing(false);
     setScoreResult(null);
@@ -88,6 +103,8 @@ function App() {
   }
 
   function handleTryAgainClick() {
+    clearCopyStatusTimeout();
+    setCopyImageStatus('idle');
     setCanSubmitDrawing(false);
     setScoreResult(null);
     setScreenState('drawing');
@@ -95,6 +112,50 @@ function App() {
 
   function handleOverlayModeChange(nextOverlayMode) {
     setOverlayMode(nextOverlayMode);
+  }
+
+  function clearCopyStatusTimeout() {
+    if (copyStatusTimeoutRef.current) {
+      clearTimeout(copyStatusTimeoutRef.current);
+      copyStatusTimeoutRef.current = null;
+    }
+  }
+
+  function scheduleCopyStatusReset() {
+    clearCopyStatusTimeout();
+
+    copyStatusTimeoutRef.current = setTimeout(function resetCopyStatus() {
+      setCopyImageStatus('idle');
+    }, COPY_STATUS_RESET_DELAY_IN_MILLISECONDS);
+  }
+
+  async function handleCopyImageClick() {
+    clearCopyStatusTimeout();
+    setCopyImageStatus('copying');
+
+    if (!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) {
+      setCopyImageStatus('error');
+      scheduleCopyStatusReset();
+      return;
+    }
+
+    try {
+      const imageBlobPromise = createShareImageBlob({
+        trackPoints: displayedTrackPoints,
+        userPoints: displayedUserPoints,
+        trackName: activeTrack.name,
+        percentageScore: scoreResult.percentageScore,
+      });
+
+      await navigator.clipboard.write([new window.ClipboardItem({ 'image/png': imageBlobPromise })]);
+
+      setCopyImageStatus('copied');
+    } catch (error) {
+      console.error('Failed to copy the result image.', error);
+      setCopyImageStatus('error');
+    }
+
+    scheduleCopyStatusReset();
   }
 
   return (
@@ -141,7 +202,14 @@ function App() {
             <p className="result-percentage">{scoreResult.percentageScore}%</p>
             <p className="result-message">{getScoreMessage(scoreResult.percentageScore)}</p>
 
-            <Controls primaryLabel="Try Again" primaryDisabled={false} onPrimaryClick={handleTryAgainClick} />
+            <Controls
+              primaryLabel="Try Again"
+              primaryDisabled={false}
+              onPrimaryClick={handleTryAgainClick}
+              secondaryLabel={COPY_BUTTON_LABEL_BY_STATUS[copyImageStatus]}
+              secondaryDisabled={copyImageStatus === 'copying'}
+              onSecondaryClick={handleCopyImageClick}
+            />
           </div>
         )}
 

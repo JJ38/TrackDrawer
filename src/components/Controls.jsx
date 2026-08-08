@@ -2,12 +2,12 @@ import './Controls.css';
 
 
 function Controls(props) {
-  const { primaryLabel, primaryDisabled, onPrimaryClick, secondaryLabel, onSecondaryClick } = props;
+  const { primaryLabel, primaryDisabled, onPrimaryClick, secondaryLabel, secondaryDisabled, onSecondaryClick } = props;
 
   return (
     <div className="controls">
       {secondaryLabel && (
-        <button type="button" className="secondary-button" onClick={onSecondaryClick}>
+        <button type="button" className="secondary-button" disabled={secondaryDisabled} onClick={onSecondaryClick}>
           {secondaryLabel}
         </button>
       )}

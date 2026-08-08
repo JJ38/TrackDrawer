@@ -81,7 +81,7 @@ Real track (reference)        User drawing (raw)
 
 ## 3. Share Result Image
 
-Let the user export/share an image combining their drawing, the real track outline, and their score — a single shareable card, generated from the same overlay already shown on the result screen (render it to an offscreen canvas, composite in the score text, produce a PNG).
+**Copy-to-clipboard shipped 2026-08-08** — see `src/sharing/createShareImageBlob.js` and the "Copy Image" button in `Controls.jsx` on the result screen. It composites the currently-displayed overlay + track name + score + ODbL attribution into a PNG and copies it via the Clipboard API. What's still deferred is a "Download" fallback (for browsers without Clipboard-API image support) and a "Share" button using the Web Share API (hands off to the OS share sheet on mobile/supporting browsers):
 
 ```
 +-----------------------------------+
@@ -97,15 +97,13 @@ Let the user export/share an image combining their drawing, the real track outli
 |                                   |
 |          Suzuka Circuit          |
 |             94.8%                |
-|          "Incredible!"           |
 |                                   |
-|         Drawn on TrackDrawer     |
 +-----------------------------------+
-        [ Share ]   [ Download ]
+  [ Copy Image ]   [ Share ]   [ Download ]
 ```
 
-- "Share" uses the Web Share API where available (mobile/some desktop browsers) to hand the image to the OS share sheet; "Download" is the universal fallback (saves the PNG directly).
-- Needs the ODbL attribution to stay visible/legible on the exported image itself, not just in the app UI, since the image leaves the app's context once shared.
+- "Copy Image" (done) uses `navigator.clipboard.write` with a `ClipboardItem`.
+- "Share" would use the Web Share API where available; "Download" would be the universal fallback (saves the PNG directly) for browsers lacking Clipboard-API image support.
 
 ---
 

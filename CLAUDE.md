@@ -4,7 +4,7 @@ Guidance for Claude Code (or any agent) working in this repository.
 
 ## Project
 
-trackDrawer is a browser game inspired by "draw a perfect circle" games: the user draws a closed loop freehand, and the attempt is scored 0–100% against the outline of a real Formula 1 circuit. The user picks a circuit from the full current F1 calendar (including races cancelled mid-season) before drawing. Other modes (guide overlays, difficulty presets, sharing) are intentionally deferred — see `FEATURE_IDEAS.md`.
+trackDrawer is a browser game inspired by "draw a perfect circle" games: the user draws a closed loop freehand, and the attempt is scored 0–100% against the outline of a real Formula 1 circuit. The user picks a circuit from the full current F1 calendar (including races cancelled mid-season) before drawing. Other modes (guide overlays, difficulty presets) are intentionally deferred — see `FEATURE_IDEAS.md`. A minimal share feature (copy the result as an image to the clipboard) was added on 2026-08-08 on explicit user request; richer sharing (file download, Web Share API) remains deferred, see `FEATURE_IDEAS.md` #3.
 
 ## Stack
 
@@ -30,8 +30,9 @@ trackDrawer is a browser game inspired by "draw a perfect circle" games: the use
   - Mirror/reflection **does** matter — a flipped (backwards) drawing should score worse, since it doesn't represent the real driving direction.
   - Start point along the loop is free; the best rotational alignment is found automatically rather than requiring the user to start at the real start/finish line.
 - **Result**: a percentage score plus a visual overlay of the user's stroke against the real track outline. Two overlay modes, toggleable on the result screen (`OverlayModeToggle.jsx`): "track stays fixed" (default — the track outline stays put, the user's stroke is rotated/scaled onto it via `applyAlignment`) or "drawing stays fixed" (the user's stroke stays exactly as drawn, the track outline is rotated/scaled onto it instead via `applyInverseAlignment` — the inverse of the same rotation/scale, since reordering for start-offset/direction doesn't change either shape's position in the plane). Purely a display choice; the score itself doesn't change.
+- **Sharing**: a "Copy Image" button on the result screen (`Controls.jsx`'s secondary button) renders whichever overlay mode is currently displayed, plus the track name/score/OSM attribution, to an offscreen canvas (`src/sharing/createShareImageBlob.js`) and copies the resulting PNG to the clipboard via the Clipboard API. No download/Web Share options yet — see `FEATURE_IDEAS.md` #3.
 - **Input**: desktop mouse only for MVP. Touch/stylus is deferred.
-- **Canvas**: responsive, scales to the viewport — including its aspect ratio, which is derived per-track from that track's own `coordinateSpace` (tracks are not all the same shape; Suzuka is wide, Silverstone is tall).
+- **Canvas**: responsive, expands to fill whatever space is left in the viewport after the header/controls/footer — its aspect ratio is therefore whatever the screen's own available space is (landscape on a wide monitor, portrait on mobile), not tied to the selected track's `coordinateSpace` shape. (Prior to 2026-08-08 the canvas aspect ratio was derived per-track; changed on explicit user request.)
 - **Track selection**: a searchable grid (`TrackSelect.jsx`) shown before drawing. Search matches against both name and location. A "Choose a different track" link is available from the drawing and result screens to return to it.
 
 ## Scoring algorithm notes
@@ -78,14 +79,17 @@ trackDrawer/
 │   ├── components/
 │   │   ├── TrackSelect.jsx         # searchable grid for choosing a circuit
 │   │   ├── DrawingCanvas.jsx       # single-stroke pointer capture, responsive canvas
-│   │   ├── Controls.jsx            # Clear/Done or Try Again button row
+│   │   ├── Controls.jsx            # Clear/Done, or Try Again/Copy Image button row
 │   │   ├── ResultOverlay.jsx       # SVG comparison of user stroke vs. real track outline
 │   │   └── OverlayModeToggle.jsx   # switches which shape (track or drawing) stays fixed in the overlay
 │   ├── scoring/
 │   │   ├── geometry.js             # shared point-math helpers (distance, centering)
 │   │   ├── resample.js             # evenly resample a closed loop by arc length
 │   │   ├── align.js                # rotation/scale similarity alignment, free start-offset and direction
-│   │   └── score.js                # orchestrates resample + align into a 0–100% score
+│   │   ├── score.js                # orchestrates resample + align into a 0–100% score
+│   │   └── overlayGeometry.js      # shared viewBox/path/stroke math used by both ResultOverlay.jsx and the share-image renderer
+│   ├── sharing/
+│   │   └── createShareImageBlob.js # composites the result overlay + track name + score + attribution into a PNG blob
 │   └── data/
 │       └── tracks.js               # loads all data/tracks/*.json via import.meta.glob, converts [x,y] arrays to {x,y} objects, exposes getTrackById/getAllTracks
 ├── index.html

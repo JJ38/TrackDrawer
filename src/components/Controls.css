@@ -30,3 +30,8 @@
   color: #1f2937;
   border-color: #d0d7de;
 }
+
+.secondary-button:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}
