@@ -228,3 +228,14 @@ This file records every prompt given to Claude during the development of trackDr
 - This alone wasn't sufficient: the user reported "drawing stays fixed" still looked more zoomed in, with visibly thicker lines and far fewer track dashes. Root cause — `track-path`/`user-path` had fixed pixel `stroke-width`/`stroke-dasharray` values in `ResultOverlay.css`, but the two modes' `viewBox` sizes are not on the same absolute scale (track-fixed uses the track's authored coordinate space, ~700–1000 units; drawing-fixed uses the user's raw canvas-pixel space, which varies with viewport size and is often much smaller) — a fixed pixel stroke width becomes a much larger, coarser-looking fraction of a smaller `viewBox`.
 - Fixed by computing `strokeWidth` and `strokeDasharray` in `ResultOverlay.jsx` as a ratio of the same `paddedExtent` used for the `viewBox` (`STROKE_WIDTH_RATIO`, `DASH_LENGTH_RATIO`, `DASH_GAP_RATIO`, calibrated to roughly match the prior fixed values at a typical track's scale) and passing them as inline `style`, removing the fixed values from `ResultOverlay.css` entirely.
 - Verified live in the browser with a deliberately elongated track (Baku City Circuit) and a rough oval drawing: before this second fix, "drawing stays fixed" showed a thick, coarsely-dashed track outline; after it, both modes render at matching scale with matching line weight and dash density (confirmed via a zoomed-in screenshot comparison). `npx oxlint src` clean, no console errors.
+
+---
+
+## 17. 2026-08-08
+
+**Prompt:**
+> When drawing the pen mark is slightly of center. Make it center
+
+**Summary of changes:**
+- `DrawingCanvas.jsx`'s `getRelativePosition` derived stroke coordinates from `getBoundingClientRect()` alone, which returns the outer edge of the element's border box. `.drawing-canvas` has a 2px border (`DrawingCanvas.css`), so the canvas's actual drawing surface (inside the border) was offset from that rectangle's origin — every captured point was shifted by the border width from the true pointer position, making the drawn line trail slightly off from the cursor.
+- Fixed by also subtracting `canvasElement.clientLeft`/`clientTop` (the border widths) so points are measured from the content box origin, matching where the canvas actually rasterizes.

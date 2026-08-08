@@ -42,7 +42,6 @@ function App() {
 
   const allTracks = getAllTracks().sort(compareTracksByName);
   const activeTrack = activeTrackId ? getTrackById(activeTrackId) : null;
-  const trackAspectRatio = activeTrack ? activeTrack.coordinateSpace.width / activeTrack.coordinateSpace.height : 1;
 
   let displayedTrackPoints = null;
   let displayedUserPoints = null;
@@ -112,7 +111,7 @@ function App() {
         {screenState === 'selecting' && <TrackSelect tracks={allTracks} onSelectTrack={handleSelectTrack} />}
 
         {screenState !== 'selecting' && (
-          <div className="canvas-area" style={{ aspectRatio: String(trackAspectRatio) }}>
+          <div className="canvas-area">
             {screenState === 'drawing' && (
               <DrawingCanvas ref={drawingCanvasRef} onStrokeComplete={handleStrokeComplete} />
             )}

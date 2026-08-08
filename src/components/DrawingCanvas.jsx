@@ -88,8 +88,8 @@ const DrawingCanvas = forwardRef(function DrawingCanvas(props, forwardedRef) {
     const boundingRectangle = canvasElement.getBoundingClientRect();
 
     return {
-      x: event.clientX - boundingRectangle.left,
-      y: event.clientY - boundingRectangle.top,
+      x: event.clientX - boundingRectangle.left - canvasElement.clientLeft,
+      y: event.clientY - boundingRectangle.top - canvasElement.clientTop,
     };
   }
 
